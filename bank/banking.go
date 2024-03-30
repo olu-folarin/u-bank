@@ -2,43 +2,14 @@ package main
 
 import (
 	"fmt"
-	"os"
-	"strconv"
-	"errors"
+	"bank.io/u-bank/docops"
 )
 
 // declare and initialize the account balance file
 const accountBalance = "balance.txt"
 
-// read from the account balance file
-// added error as a type so i could use the errors package to generate custom error messages
-func readBalance() (float64, error) {
-	data, err := os.ReadFile(accountBalance)
-
-	// error handling
-	if err != nil {
-		return 700, errors.New("accountBalance file could not be found.")
-	}
-
-	statementTxt := string(data) // convert the data that's converted to byte using writetofile to string format
-	accBalance, err := strconv.ParseFloat(statementTxt, 64) // convert the string data back to float64
-	// error handling for parsefloat as it could also generate an error
-	if err != nil {
-		return 700, errors.New("Could not parse stored balance value to float.")
-	}
-
-	// add nil to the return to show there's no error
-	return accBalance, nil
-}
-
-// persist the account balance to a file
-func persistAccountBalance(balance float64) {
-	statementTxt := fmt. Sprint(balance)
-	os.WriteFile(accountBalance, []byte(statementTxt), 644)
-}
-
 func main() {
-	balance, err := readBalance()
+	balance, err := docops.RetrieveFloatFromFile(accountBalance)
 	// since the readBalance function is used here, you need to use the err package for error handling here too
 	if err != nil {
 		fmt.Println("Something isn't right.")
@@ -53,11 +24,7 @@ func main() {
 	// run the app for as long as possible until the user selects option 4
 	// to avoid using so many if and else ifs, a switch comes in handy
 	for {
-	fmt.Println("Choose a service: ")
-	fmt.Println("1. Check my balance")
-	fmt.Println("2. Make a deposit")
-	fmt.Println("3. Withdraw funds")
-	fmt.Println("4. Exit")
+	presentOptions()
 
 	// initialize and collect user option
 	var option int
@@ -82,7 +49,7 @@ func main() {
 		} else {
 			balance += deposit
 			fmt.Printf("Your new balance is $%.2f.\n", balance)
-			persistAccountBalance(balance)
+			docops.PersistFloatToDoc(balance, accountBalance)
 		}
 
 	case 3:
@@ -96,7 +63,7 @@ func main() {
 		} else {
 			balance -= withdraw
 			fmt.Printf("Your new balance is $%.2f\n", balance)
-			persistAccountBalance(balance)
+			docops.PersistFloatToDoc(balance, accountBalance)
 		}
 
 	default:
